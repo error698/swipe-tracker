@@ -13,7 +13,7 @@ import com.error698.swipetracker.data.SwipeApp
 import com.error698.swipetracker.ui.MainActivity
 
 /**
- * Polls UsageStatsManager every 2 seconds to detect when Bumble or Hinge
+ * Polls UsageStatsManager every 2 seconds to detect when Bumble
  * is in the foreground, then starts/stops the floating overlay accordingly.
  */
 class AppMonitorService : Service() {

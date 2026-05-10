@@ -230,10 +230,7 @@ class OverlayService : Service() {
 
     private fun refreshDisplay() {
         val store = SwipeRepository.load(this)
-        val data = when (currentApp) {
-            SwipeApp.BUMBLE -> store.bumble
-            SwipeApp.HINGE -> store.hinge
-        }
+        val data = store.bumble
 
         val todayStr = java.time.LocalDate.now().toString()
         val todayCount = data.sessions
@@ -244,10 +241,7 @@ class OverlayService : Service() {
         appLabel?.text = currentApp.displayName
 
         // Color the count based on app
-        val color = when (currentApp) {
-            SwipeApp.BUMBLE -> Color.parseColor("#FFC629")
-            SwipeApp.HINGE -> Color.parseColor("#E94057")
-        }
+        val color = Color.parseColor("#FFC629")
         countText?.setTextColor(color)
     }
 
@@ -257,6 +251,7 @@ class OverlayService : Service() {
 
     private fun pulseAnimation() {
         overlayView?.let { v ->
+            v.animate().cancel() // Cancel any ongoing animation to prevent jitter
             v.animate()
                 .scaleX(1.3f)
                 .scaleY(1.3f)

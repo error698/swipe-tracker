@@ -12,30 +12,31 @@ import com.error698.swipetracker.data.SwipeRepository
 /**
  * SwipeAccessibilityService
  *
- * Detects right swipes (likes) in Bumble and Hinge using multiple strategies:
+ * Detects right swipes (likes) in Bumble using multiple strategies:
  *
  * 1. BUTTON CLICK — TYPE_VIEW_CLICKED on nodes containing like/heart/yes keywords.
  * 2. ANNOUNCEMENT — TYPE_ANNOUNCEMENT events apps fire for screen readers
- *    (e.g. "Liked", "Like sent", "Rose sent").
+ *    (e.g. "Liked", "Like sent").
  * 3. CONTENT CHANGE — TYPE_WINDOW_CONTENT_CHANGED: when the profile card changes,
- *    scan the tree for right-swipe confirmation elements (Bumble's "liked" overlay,
- *    Hinge's "like sent" text). If a positive indicator is found, count it.
+ *    scan the tree for right-swipe confirmation elements (Bumble's "liked" overlay).
+ *    If a positive indicator is found, count it.
  * 4. VIEW SCROLLED — TYPE_VIEW_SCROLLED on the card stack can indicate a swipe gesture.
  *
- * Scoped to com.bumble.app and co.hinge.app only (via XML config).
- * 800ms debounce prevents double-counting.
+ * Scoped to com.bumble.app only (via XML config).
+ * 2000ms debounce prevents double-counting.
  */
 class SwipeAccessibilityService : AccessibilityService() {
 
     companion object {
         private const val TAG = "SwipeTracker"
 
-        private const val DEBOUNCE_MS = 800L
+        private const val DEBOUNCE_MS = 500L
+        private const val FALLBACK_RESET_MS = 5000L
 
         // Keywords indicating a "like" / right-swipe action (case-insensitive)
         private val LIKE_KEYWORDS = listOf(
             "like", "liked", "yes", "heart", "interested",
-            "match", "superswipe", "super like", "rose",
+            "match", "superswipe", "super like",
             "sent", "vote yes", "vote_yes", "action_like",
             "like_button", "btn_like", "btn_yes", "btn_vote_yes"
         )
@@ -50,7 +51,7 @@ class SwipeAccessibilityService : AccessibilityService() {
         // Positive confirmation keywords that appear AFTER a right swipe
         // (in toast/overlay/animation elements)
         private val SWIPE_CONFIRM_KEYWORDS = listOf(
-            "liked", "like sent", "rose sent", "match",
+            "liked", "like sent", "match",
             "it's a match", "you liked", "sent a like",
             "super like sent", "superswipe sent"
         )
@@ -59,6 +60,8 @@ class SwipeAccessibilityService : AccessibilityService() {
         var lastSwipeTime: Long = 0L
         // Track whether we recently saw a like-confirmation indicator
         private var lastConfirmationTime: Long = 0L
+        // Prevent double-counting the SAME profile
+        private var hasSwipedCurrentProfile: Boolean = false
 
         const val ACTION_SWIPE_DETECTED = "com.error698.swipetracker.SWIPE_DETECTED"
         const val EXTRA_APP_NAME = "app_name"
@@ -202,17 +205,16 @@ class SwipeAccessibilityService : AccessibilityService() {
         val profileText = extractProfileText(root)
         root.recycle()
 
+        // If we can't find any text, we don't update the hash, 
+        // but the fallback reset below will handle it.
         if (profileText.isBlank()) return
 
         val hash = profileText.hashCode()
-        if (hash != lastProfileHash && lastProfileHash != 0) {
-            Log.d(TAG, "Profile changed in ${app.displayName}")
-            // Profile changed — we don't count this alone since we
-            // can't distinguish right from left swipes. The confirmation
-            // scan above and click/announcement handlers handle right-swipe
-            // detection. This log helps with debugging.
+        if (hash != lastProfileHash) {
+            Log.d(TAG, "Profile changed - resetting swipe flag")
+            lastProfileHash = hash
+            hasSwipedCurrentProfile = false 
         }
-        lastProfileHash = hash
     }
 
     /**
@@ -242,10 +244,10 @@ class SwipeAccessibilityService : AccessibilityService() {
             return true
         }
 
-        // Check for specific Bumble/Hinge confirmation view IDs
+        // Check for specific Bumble confirmation view IDs
         if (viewId.contains("like_indicator") || viewId.contains("match_animation") ||
-            viewId.contains("liked_overlay") || viewId.contains("like_sent") ||
-            viewId.contains("action_feedback") || viewId.contains("swipe_indicator")) {
+            viewId.contains("liked_overlay") || viewId.contains("action_feedback") ||
+            viewId.contains("swipe_indicator")) {
             Log.d(TAG, "Confirmation view ID found: '$viewId'")
             return true
         }
@@ -267,7 +269,7 @@ class SwipeAccessibilityService : AccessibilityService() {
      */
     private fun extractProfileText(root: AccessibilityNodeInfo): String {
         val sb = StringBuilder()
-        traverseForText(root, sb, depth = 0, maxDepth = 8)
+        traverseForText(root, sb, depth = 0, maxDepth = 20) // Scans deeper
         return sb.toString()
     }
 
@@ -329,11 +331,25 @@ class SwipeAccessibilityService : AccessibilityService() {
 
     private fun recordSwipeDebounced(app: SwipeApp) {
         val now = System.currentTimeMillis()
+        
+        // 0. Fallback reset: if it's been > 5s, we must have moved on
+        if (hasSwipedCurrentProfile && (now - lastSwipeTime > FALLBACK_RESET_MS)) {
+            Log.d(TAG, "Fallback: resetting swipe flag due to timeout")
+            hasSwipedCurrentProfile = false
+        }
+
+        // 1. Time-based debounce (safety fallback)
         if (now - lastSwipeTime < DEBOUNCE_MS) {
-            Log.d(TAG, "Debounced duplicate swipe event")
             return
         }
+
+        // 2. Profile-based debounce (prevents multiple counts for same person)
+        if (hasSwipedCurrentProfile) {
+            return
+        }
+
         lastSwipeTime = now
+        hasSwipedCurrentProfile = true // Mark this profile as counted
 
         val ctx = applicationContext
         val newTotal = SwipeRepository.recordSwipe(ctx, app)

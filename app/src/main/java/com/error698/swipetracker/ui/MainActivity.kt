@@ -29,8 +29,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var bumbleTotalText: TextView
     private lateinit var bumbleTodayText: TextView
-    private lateinit var hingeTotalText: TextView
-    private lateinit var hingeTodayText: TextView
     private lateinit var statusText: TextView
     private lateinit var startButton: Button
     private lateinit var permissionsContainer: LinearLayout
@@ -94,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         root.addView(TextView(this).apply {
-            text = "Right swipe counter for Bumble & Hinge"
+            text = "Right swipe counter for Bumble"
             setTextColor(Color.parseColor("#666680"))
             textSize = 14f
             gravity = Gravity.CENTER
@@ -146,16 +144,6 @@ class MainActivity : AppCompatActivity() {
         ) { total, today ->
             bumbleTotalText = total
             bumbleTodayText = today
-        })
-
-        root.addView(createSpacer(16))
-
-        // ── Hinge card ──
-        root.addView(createAppCard(
-            "Hinge", "#E94057"
-        ) { total, today ->
-            hingeTotalText = total
-            hingeTodayText = today
         })
 
         root.addView(createSpacer(24))
@@ -269,10 +257,6 @@ class MainActivity : AppCompatActivity() {
         bumbleTotalText.text = store.bumble.total.toString()
         bumbleTodayText.text = store.bumble.sessions
             .filter { it.date == today }.sumOf { it.count }.toString()
-
-        hingeTotalText.text = store.hinge.total.toString()
-        hingeTodayText.text = store.hinge.sessions
-            .filter { it.date == today }.sumOf { it.count }.toString()
     }
 
     // ─── Permissions ───
@@ -299,7 +283,7 @@ class MainActivity : AppCompatActivity() {
             allGranted = false
             permissionsContainer.addView(createPermissionRow(
                 "Usage Access",
-                "Required to detect when Bumble/Hinge opens"
+                "Required to detect when Bumble opens"
             ) {
                 startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS))
             })

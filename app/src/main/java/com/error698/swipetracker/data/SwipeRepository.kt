@@ -14,8 +14,7 @@ data class AppSwipeData(
 )
 
 data class SwipeStore(
-    val bumble: AppSwipeData = AppSwipeData(),
-    val hinge: AppSwipeData = AppSwipeData()
+    val bumble: AppSwipeData = AppSwipeData()
 )
 
 object SwipeRepository {
@@ -49,7 +48,6 @@ object SwipeRepository {
         val store = load(ctx)
         val data = when (app) {
             SwipeApp.BUMBLE -> store.bumble
-            SwipeApp.HINGE -> store.hinge
         }
 
         data.total += 1
@@ -74,8 +72,7 @@ object SwipeRepository {
 }
 
 enum class SwipeApp(val packageName: String, val displayName: String) {
-    BUMBLE("com.bumble.app", "Bumble"),
-    HINGE("co.hinge.app", "Hinge");
+    BUMBLE("com.bumble.app", "Bumble");
 
     companion object {
         fun fromPackage(pkg: String): SwipeApp? = entries.find { it.packageName == pkg }
