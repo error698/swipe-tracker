@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Right arrow / swipe indicator centered in safe zone (24-84) -->
+    <path
+        android:fillColor="#0f0f1a"
+        android:pathData="M38,54 L58,54 L58,44 L72,54 L58,64 L58,54 Z" />
+    <!-- Counter circle -->
+    <path
+        android:fillColor="#0f0f1a"
+        android:pathData="M54,54 m-18,0 a18,18 0 1,1 36,0 a18,18 0 1,1 -36,0"
+        android:strokeColor="#0f0f1a"
+        android:strokeWidth="2.5" />
+    <!-- Right arrow overlaid -->
+    <path
+        android:fillColor="#FFC629"
+        android:pathData="M46,54 L56,54 L56,47 L66,54 L56,61 L56,54 Z" />
+</vector>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SwipeTracker" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#FFC629</item>
+        <item name="colorPrimaryVariant">#E5B024</item>
+        <item name="colorOnPrimary">#0f0f1a</item>
+        <item name="colorSecondary">#E94057</item>
+        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="android:statusBarColor">#0f0f1a</item>
+        <item name="android:navigationBarColor">#0f0f1a</item>
+        <item name="android:windowBackground">#0f0f1a</item>
+    </style>
+</resources>

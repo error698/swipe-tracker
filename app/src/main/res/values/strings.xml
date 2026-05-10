@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SwipeTracker</string>
+    <string name="accessibility_service_description">
+        SwipeTracker uses accessibility to detect right swipes (likes) in Bumble and Hinge.
+        It only monitors these two apps and counts when you tap Like or swipe right on a profile.
+        No personal data from profiles is collected or stored.
+    </string>
+</resources>
